@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    form {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      width: 300px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 12px;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: #4caf50;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+
+  <form id="loginForm">
+    <label for="rollNo">Roll No:</label>
+    <input type="text" id="rollNo" name="rollNo" required>
+
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required>
+
+    <button type="button" onclick="login()">Login</button>
+  </form>
+
+  <script>
+    function login() {
+      const rollNo = document.getElementById('rollNo').value;
+      const password = document.getElementById('password').value;
+
+      // You can now send a POST request to your backend for authentication
+      fetch('your-backend-endpoint-url/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          rollNo,
+          password,
+        }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.token) {
+          // Store the JWT token in local storage
+          localStorage.setItem('token', data.token);
+          // Redirect to the dashboard page
+          window.location.href = 'dashboard.html';
+        } else {
+          alert('Login failed. Check your credentials.');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+    }
+  </script>
+
+</body>
+</html>

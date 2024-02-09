@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Form</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    #quizContainer {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      width: 400px;
+      text-align: center;
+    }
+
+    #optionsContainer {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    label {
+      margin-bottom: 8px;
+    }
+
+    input[type="radio"] {
+      margin-right: 8px;
+    }
+
+    button {
+      margin-top: 20px;
+      background-color: #4caf50;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      background-color: #ddd;
+      cursor: not-allowed;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="quizContainer">
+    <h2>Quiz</h2>
+    <div id="question"></div>
+    <div id="optionsContainer"></div>
+    <button id="submitBtn" onclick="submitAnswer()" disabled>Submit</button>
+    <button id="nextBtn" onclick="nextQuestion()" style="display: none;" disabled>Next</button>
+  </div>
+
+  <script>
+    let currentQuestionIndex = 0;
+    let correctAnswers = 0;
+
+    // Function to fetch a random question from the server
+    function fetchRandomQuestion() {
+      fetch('your-backend-endpoint-url/random-question', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Display the question and options
+        displayQuestion(data);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+    }
+
+    // Function to display the question and options
+    function displayQuestion(question) {
+      const questionContainer = document.getElementById('question');
+      const optionsContainer = document.getElementById('optionsContainer');
+      const submitBtn = document.getElementById('submitBtn');
+      const nextBtn = document.getElementById('nextBtn');
+
+      questionContainer.innerHTML = `<p>Question ${currentQuestionIndex + 1}: ${question.text}</p>`;
+
+      optionsContainer.innerHTML = '';
+      question.options.forEach((option, index) => {
+        const input = document.createElement('input');
+        input.type = 'radio';
+        input.name = 'option';
+        input.value = index;
+        input.id = `option${index}`;
+
+        const label = document.createElement('label');
+        label.textContent = option;
+        label.htmlFor = `option${index}`;
+
+        optionsContainer.appendChild(input);
+        optionsContainer.appendChild(label);
+      });
+
+      // Enable submit button
+      submitBtn.disabled = false;
+
+      // Hide next button until question is submitted
+      nextBtn.style.display = 'none';
+    }
+
+    // Function to submit the answer
+    function submitAnswer() {
+      const options = document.getElementsByName('option');
+      const selectedOption = Array.from(options).find(option => option.checked);
+
+      if (selectedOption !== undefined) {
+        const selectedOptionIndex = parseInt(selectedOption.value);
+        // Fetch the correct answer from the server (you should include this in your API)
+        fetch('your-backend-endpoint-url/correct-answer', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+        .then(response => response.json())
+        .then(data => {
+          const correctAnswerIndex = data.correctOption;
+
+          // Check if the selected option is correct
+          if (selectedOptionIndex === correctAnswerIndex) {
+            correctAnswers++;
+          }
+
+          // Disable submit button, enable next button
+          document.getElementById('submitBtn').disabled = true;
+          document.getElementById('nextBtn').style.display = 'block';
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+      }
+    }
+
+    // Function to move to the next question
+    function nextQuestion() {
+      currentQuestionIndex++;
+
+      if (currentQuestionIndex < 5) {
+        fetchRandomQuestion();
+      } else {
+        // Display the final score and store the attempt in the system
+        alert(`Quiz completed!\nYour score: ${correctAnswers}/5`);
+        storeAttempt();
+
+        // Hide submit button, show next button
+        document.getElementById('submitBtn').style.display = 'none';
+        document.getElementById('nextBtn').style.display = 'none';
+      }
+    }
+
+    // Function to store the attempt in the system (you should implement this on your backend)
+   // Function to store the attempt in the system (you should implement this on your backend)
+function storeAttempt(score) {
+  // Replace 'https://your-backend-api.com/store-attempt' with your actual backend endpoint
+  const apiUrl = 'https://your-backend-api.com/store-attempt';
+
+  // Get current timestamp
+  const timestamp = new Date().toISOString();
+
+  // Example data to send to the backend
+  const data = {
+    score: score,
+    timestamp: timestamp,
+    // Add other relevant information as needed
+  };
+
+  // Make a POST request to the backend API
+  fetch(apiUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      // Add any headers required by your backend
+    },
+    body: JSON.stringify(data),
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Failed to store attempt on the server');
+    }
+    // Optionally handle the response if needed
+    return response.json();
+  })
+  .then(result => {
+    console.log('Attempt stored successfully:', result);
+    // You may perform additional actions after successfully storing the attempt
+  })
+  .catch(error => {
+    console.error('Error storing attempt:', error);
+    // Handle errors or provide feedback to the user
+  });
+}
+
+    // Fetch the first random question when the page loads
+    window.onload = fetchRandomQuestion;
+  </script>
+
+</body>
+</html>
